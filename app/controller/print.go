@@ -42,15 +42,22 @@ func (p printer) PrintFile(c *gin.Context) {
 		return
 	}
 	for i := 0; i <= Param.Num; i++ {
-		go func() {
-			err = goprint.GoPrint(printerHarder, Param.FilePath)
-			if err != nil {
-				c.JSON(http.StatusOK, response.Fail(struct {
-					Msg string `json:"msg"`
-				}{Msg: err.Error()}))
-				return
-			}
-		}()
+		//go func() {
+		//	err = goprint.GoPrint(printerHarder, Param.FilePath)
+		//	if err != nil {
+		//		c.JSON(http.StatusOK, response.Fail(struct {
+		//			Msg string `json:"msg"`
+		//		}{Msg: err.Error()}))
+		//		return
+		//	}
+		//}()
+		err = goprint.GoPrint(printerHarder, Param.FilePath)
+		if err != nil {
+			c.JSON(http.StatusOK, response.Fail(struct {
+				Msg string `json:"msg"`
+			}{Msg: err.Error()}))
+			return
+		}
 	}
 	c.JSON(http.StatusOK, response.Ok("success"))
 	return
