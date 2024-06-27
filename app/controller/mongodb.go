@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"golang-tool-api/app/models/response"
+	"golang-tool-api/app/service"
 	"net/http"
-	"redis-tool/app/models/response"
-	"redis-tool/app/service"
 )
 
 var Mongodb = new(MongodbController)

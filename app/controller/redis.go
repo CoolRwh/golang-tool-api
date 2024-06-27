@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"golang-tool-api/app/models/response"
 	"net/http"
-	"redis-tool/app/models/response"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-var Redis = new(ControllerType)
+var Redis = new(RedisController)
 
-type ControllerType struct{}
+type RedisController struct{}
 
 type Config struct {
 	Addr     string `json:"addr"`
@@ -28,7 +28,7 @@ type Config struct {
 
 var ctx = context.Background()
 
-func (t ControllerType) Config(c *gin.Context) {
+func (t RedisController) Config(c *gin.Context) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "192.168.56.56:6379", // Redis地址
 		Password: "123456",             // Redis密码，如果没有则为空字符串
@@ -36,29 +36,32 @@ func (t ControllerType) Config(c *gin.Context) {
 	})
 	config, err := rdb.Info(ctx, "all").Result()
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
+		c.JSON(http.StatusOK, response.Fail(err.Error()))
 		return
 	}
 	configNew, err := parseInfo(config)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": "数据转换异常！" + err.Error()})
+		errMsg := &response.BusinessError{Code: response.RequestParamError, Msg: err.Error()}
+		c.JSON(http.StatusOK, response.ResultCustom(errMsg))
 		return
 	}
 	// 关闭连接
 	err = rdb.Close()
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
+		errMsg := &response.BusinessError{Code: response.RedisClientCloseError, Msg: err.Error()}
+		c.JSON(http.StatusOK, response.ResultCustom(errMsg))
 		return
 	}
 	c.JSON(http.StatusOK, response.Ok(configNew))
 	return
 }
 
-func (t ControllerType) Keys(c *gin.Context) {
+func (t RedisController) Keys(c *gin.Context) {
 	var configData Config
 	err := c.ShouldBindJSON(&configData)
 	if err != nil {
-		c.JSON(200, gin.H{"error": "参数异常" + err.Error()})
+		errMsg := &response.BusinessError{Code: response.RequestParamError, Msg: err.Error()}
+		c.JSON(http.StatusOK, response.ResultCustom(errMsg))
 		return
 	}
 	rdb := redis.NewClient(&redis.Options{
@@ -73,14 +76,15 @@ func (t ControllerType) Keys(c *gin.Context) {
 	// 关闭连接
 	err = rdb.Close()
 	if err != nil {
-		c.JSON(200, gin.H{"error": err.Error()})
+		errMsg := &response.BusinessError{Code: response.RequestParamError, Msg: err.Error()}
+		c.JSON(http.StatusOK, response.ResultCustom(errMsg))
 		return
 	}
 	c.JSON(200, gin.H{"list": list, "total": len(list)})
 	return
 }
 
-func (t ControllerType) Info(c *gin.Context) {
+func (t RedisController) Info(c *gin.Context) {
 	var configData Config
 	err := c.ShouldBindJSON(&configData)
 	if err != nil {
