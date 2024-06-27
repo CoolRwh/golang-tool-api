@@ -53,9 +53,7 @@ func (p printer) PrintFile(c *gin.Context) {
 		//}()
 		err = goprint.GoPrint(printerHarder, Param.FilePath)
 		if err != nil {
-			c.JSON(http.StatusOK, response.Fail(struct {
-				Msg string `json:"msg"`
-			}{Msg: err.Error()}))
+			c.JSON(http.StatusOK, response.Fail(err.Error()))
 			return
 		}
 	}
